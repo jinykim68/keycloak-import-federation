@@ -29,9 +29,12 @@ import org.keycloak.credential.CredentialInputValidator;
 import org.keycloak.component.ComponentModel;
 import org.keycloak.credential.CredentialInput;
 
+import java.util.List;
+import java.util.Map;
+
 
 /**
- * Dummy User federation for local development
+ * Rest User federation to import users from remote user store
  *
  * @author Istvan Orban
  */
@@ -53,12 +56,39 @@ public class RestUserFederationProvider implements UserLookupProvider, ImportedU
         UserModel local = session.userLocalStorage().getUserByUsername(username, realm);
         if (local == null) {
             //fetch user remotely
+            LOG.debugf("User %s does not exists locally, fetching in from remote.", username);
             UserDto remote = this.repository.findUserByUsername(username);
             if ( remote != null) {
+
+                if (!username.equals(remote.getEmail())) {
+                    throw new IllegalStateException(String.format("Local and remote users are not the same : [%s != %s]", username, remote.getEmail()));
+                }
+
+                //create user locally and set up relationship to this SPI
                 local = session.userLocalStorage().addUser(realm, username);
                 local.setFederationLink(model.getId());
 
                 //merge data from remote to local
+                local.setFirstName(remote.getFirstName());
+                local.setLastName(remote.getLastName());
+                local.setEmail(remote.getEmail());
+                local.setEmailVerified(remote.isEnabled());
+
+                if (remote.getAttributes() != null) {
+                    Map<String, List<String>> attributes = remote.getAttributes();
+                    for (String attributeName : attributes.keySet())
+                        local.setAttribute(attributeName, attributes.get(attributeName));
+                }
+
+                if (remote.getRoles() != null) {
+                    for (String role : remote.getRoles()) {
+                        RoleModel roleModel = realm.getRole(role);
+                        if (roleModel != null) {
+                            local.grantRole(roleModel);
+                            LOG.infof("Remote role %s granted to %s", role, username);
+                        }
+                    }
+                }
 
             }
         }
@@ -114,8 +144,7 @@ public class RestUserFederationProvider implements UserLookupProvider, ImportedU
 
     @Override
     public UserModel getUserByUsername(String username, RealmModel realm) {
-
-        LOG.infof("Get by username: %s", username);
+        LOG.infof("Creating a new user adapter for: %s", username);
         return this.createAdapter(realm, username);
     }
 
@@ -135,6 +164,8 @@ public class RestUserFederationProvider implements UserLookupProvider, ImportedU
     }
 
     //see https://keycloak.gitbooks.io/server-developer-guide/content/topics/user-storage/import.html
+    //this is called every time the user is laoded from the Local user-store
+    //this can be used to check if the user still exists in the remote, returning null will remote this user locally
     @Override
     public UserModel validate(RealmModel realm, UserModel user) {
         return user;
