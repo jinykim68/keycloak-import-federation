@@ -58,6 +58,7 @@ public class RestUserFederationProviderFactoryTest {
         factory = new RestUserFederationProviderFactory();
         MultivaluedHashMap<String, String> config = new MultivaluedHashMap<String, String>();
         config.putSingle(RestUserFederationProviderFactory.PROPERTY_URL, "https://www.example.org");
+        config.putSingle(RestUserFederationProviderFactory.PROPERTY_CLIENTID, "134");
         when(userFederationProviderModel.getConfig())
                 .thenReturn(config);
     }

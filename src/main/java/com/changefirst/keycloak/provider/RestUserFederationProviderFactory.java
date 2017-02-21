@@ -76,11 +76,19 @@ public class RestUserFederationProviderFactory implements UserStorageProviderFac
     @Override
     public void validateConfiguration(KeycloakSession session, RealmModel realm, ComponentModel config) throws ComponentValidationException {
        String url = config.getConfig().getFirst(PROPERTY_URL);
+       String clientId = config.getConfig().getFirst(PROPERTY_CLIENTID);
 
        boolean valid = false;
 
        if ( url != null && url.length() > 10) {
            valid =  true;
+       }
+
+
+       if ( valid && clientId != null && clientId.length() > 0 ) {
+           valid = true;
+       } else {
+           valid = false;
        }
 
        LOG.debugf("validating module config %s", valid);
@@ -105,8 +113,8 @@ public class RestUserFederationProviderFactory implements UserStorageProviderFac
         String url = model.getConfig().getFirst(PROPERTY_URL);
         String clientId = model.getConfig().getFirst(PROPERTY_CLIENTID);
         List<String> attribList = model.getConfig().getList(PROPERTY_ATTRIBS);
-        UserRepository repository = new UserRepository(url, clientId, attribList);
-        return new RestUserFederationProvider(session, model, repository);
+        UserRepository repository = new UserRepository(url, clientId);
+        return new RestUserFederationProvider(session, model, repository, attribList);
     }
 
 }

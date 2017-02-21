@@ -29,6 +29,7 @@ import org.keycloak.storage.UserStorageProvider;
 import org.keycloak.storage.user.ImportedUserValidation;
 import org.keycloak.storage.user.UserLookupProvider;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -45,11 +46,17 @@ public class RestUserFederationProvider implements UserLookupProvider, ImportedU
     protected KeycloakSession session;
     protected ComponentModel model;
     protected UserRepository repository;
+    protected List<String> attributes;
 
     public RestUserFederationProvider(KeycloakSession session, ComponentModel model, UserRepository repository) {
+        this(session, model,repository, new ArrayList<String>());
+    }
+
+    public RestUserFederationProvider(KeycloakSession session, ComponentModel model, UserRepository repository, List<String> attributes) {
         this.session = session;
         this.model = model;
         this.repository = repository;
+        this.attributes = attributes;
     }
 
     protected UserModel createAdapter(RealmModel realm, String username) {
@@ -74,12 +81,17 @@ public class RestUserFederationProvider implements UserLookupProvider, ImportedU
                 local.setEmail(remote.getEmail());
                 local.setEmailVerified(remote.isEnabled());
 
+                //copy user attribs over
                 if (remote.getAttributes() != null) {
                     Map<String, List<String>> attributes = remote.getAttributes();
-                    for (String attributeName : attributes.keySet())
-                        local.setAttribute(attributeName, attributes.get(attributeName));
+                    for (String attributeName : attributes.keySet()) {
+                        if ( this.attributes.isEmpty() || this.attributes.contains(attributeName)) {
+                            local.setAttribute(attributeName, attributes.get(attributeName));
+                        }
+                    }
                 }
 
+                //pass roles along
                 if (remote.getRoles() != null) {
                     for (String role : remote.getRoles()) {
                         RoleModel roleModel = realm.getRole(role);

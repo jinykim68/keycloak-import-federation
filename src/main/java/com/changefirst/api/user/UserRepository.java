@@ -31,16 +31,10 @@ public class UserRepository {
 
     private String url;
     private String client;
-    private List<String> attributes;
     private UserService remoteService;
 
     public UserRepository(String url, String client) {
-        this(url, client, new ArrayList<String>());
-    }
-
-    public UserRepository(String url, String client, List<String> attributes) {
         this.url = url;
-        this.attributes = attributes;
         this.client = client;
         this.remoteService = buildClient(url);
     }
