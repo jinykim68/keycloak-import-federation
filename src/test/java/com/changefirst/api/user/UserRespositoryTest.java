@@ -24,6 +24,10 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import static com.xebialabs.restito.builder.stub.StubHttp.whenHttp;
 import static com.xebialabs.restito.builder.verify.VerifyHttp.verifyHttp;
 import static com.xebialabs.restito.semantics.Action.contentType;
@@ -38,7 +42,8 @@ import static java.lang.String.format;
 public class UserRespositoryTest {
 
     private static final String USER_NAME = "user1@changefirst.com";
-    private static final String CONTEXT = "/api";
+    private static final String CONTEXT = "/api/migration";
+    private static final String CLIENT = "134";
 
     private StubServer server;
 
@@ -62,13 +67,13 @@ public class UserRespositoryTest {
 
     @Test
     public void testFindUserByUsername() {
-        String url = format("%s/users/%s", CONTEXT, USER_NAME);
+        String url = getClientUrl(CONTEXT, CLIENT, USER_NAME);
 
         whenHttp(server).
                 match(get(url)).
                 then(status(HttpStatus.OK_200), contentType("application/json"), resourceContent("com/changefirst/api/user.json"));
 
-        UserRepository userRepository = new UserRepository(getRestUrl());
+        UserRepository userRepository = new UserRepository(getRestUrl(), CLIENT);
         UserDto user = userRepository.findUserByUsername(USER_NAME);
 
         verifyHttp(server).once(
@@ -79,23 +84,34 @@ public class UserRespositoryTest {
         Assert.assertEquals(USER_NAME, user.getEmail());
         Assert.assertEquals("First Name", user.getFirstName());
         Assert.assertEquals("Last Name", user.getLastName());
-        Assert.assertTrue(user.isEnabled());
-        Assert.assertTrue(user.getRoles().contains("admin"));
-        Assert.assertTrue(user.getRoles().contains("user"));
+        Assert.assertTrue("is enabled", user.isEnabled());
+        Assert.assertTrue("has admin role", user.getRoles().contains("admin"));
+        Assert.assertTrue("has user role", user.getRoles().contains("user"));
+
+        Map<String, List<String>> attribs = user.getAttributes();
+
+        Assert.assertTrue("Contains locale", attribs.containsKey("locale"));
+        Assert.assertTrue("Contains country", attribs.containsKey("country"));
+        Assert.assertTrue("Contains client id", attribs.containsKey("clientId"));
+        Assert.assertTrue("Contains phone Nr", attribs.containsKey("phoneNumber"));
+        Assert.assertTrue("Contains mobile Number ", attribs.containsKey("mobileNumber"));
+
+        String clientId = attribs.get("clientId").get(0);
+        Assert.assertEquals(CLIENT, clientId);
 
     }
 
     @Test
     public void testValidateCredentials() throws Exception {
 
-        String url = format("%s/users/%s", CONTEXT, USER_NAME);
+        String url = getClientUrl(CONTEXT, CLIENT, USER_NAME);
         String credential = "password";
 
         whenHttp(server).
                 match(post(url)).
                 then(status(HttpStatus.OK_200), contentType("application/json"));
 
-        UserRepository userRepository = new UserRepository(getRestUrl());
+        UserRepository userRepository = new UserRepository(getRestUrl(), CLIENT);
         boolean exists = userRepository.validateCredentials(USER_NAME, credential);
 
         Assert.assertTrue(exists);
@@ -111,13 +127,13 @@ public class UserRespositoryTest {
     @Test
     public void testValidateCredentialsInvalid() throws Exception {
 
-        String url = format("%s/users/%s", CONTEXT, USER_NAME);
+        String url = getClientUrl(CONTEXT, CLIENT, USER_NAME);
 
         whenHttp(server).
                 match(post(url)).
                 then(status(HttpStatus.NOT_FOUND_404), contentType("application/json"));
 
-        UserRepository userRepository = new UserRepository(getRestUrl());
+        UserRepository userRepository = new UserRepository(getRestUrl(), CLIENT);
         boolean exists = userRepository.validateCredentials(USER_NAME, "password");
 
         Assert.assertFalse(exists);
@@ -127,6 +143,10 @@ public class UserRespositoryTest {
                 uri(url)
         );
 
+    }
+
+    private String getClientUrl(String context, String client, String userName) {
+        return format("%s/clients/%s/users/%s", context, client, userName);
     }
 
     private String getRestUrl() {

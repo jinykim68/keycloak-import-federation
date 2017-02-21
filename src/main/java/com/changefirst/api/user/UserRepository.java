@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Remote repository to load remote user data
+ * Remote repository to load remote user data from UserService using REST
  * Created by istvano on 16/02/2017.
  */
 public class UserRepository {
@@ -30,16 +30,18 @@ public class UserRepository {
     }
 
     private String url;
+    private String client;
     private List<String> attributes;
     private UserService remoteService;
 
-    public UserRepository(String url) {
-        this(url, new ArrayList<String>());
+    public UserRepository(String url, String client) {
+        this(url, client, new ArrayList<String>());
     }
 
-    public UserRepository(String url, List<String> attributes) {
+    public UserRepository(String url, String client, List<String> attributes) {
         this.url = url;
         this.attributes = attributes;
+        this.client = client;
         this.remoteService = buildClient(url);
     }
 
@@ -49,8 +51,8 @@ public class UserRepository {
      * @param credential
      * @return
      */
-    public boolean validateCredentials(String userName, String credential) {
-        Response response = remoteService.validateLogin(userName, new UserCredentialsDto(credential));
+    public boolean validateCredentials( String userName, String credential) {
+        Response response = remoteService.validateLogin(this.client, userName, new UserCredentialsDto(credential));
         return HttpStatus.SC_OK == response.getStatus();
     }
 
@@ -60,7 +62,7 @@ public class UserRepository {
      * @return
      */
     public UserDto findUserByUsername(String userName) {
-        UserDto remoteUser = remoteService.getUserDetails(userName);
+        UserDto remoteUser = remoteService.getUserDetails(this.client, userName);
         return remoteUser;
     }
 }

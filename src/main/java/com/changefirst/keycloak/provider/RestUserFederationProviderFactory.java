@@ -39,6 +39,7 @@ public class RestUserFederationProviderFactory implements UserStorageProviderFac
 
     public static final String PROPERTY_URL = "url";
     public static final String PROPERTY_ATTRIBS = "attributes";
+    public static final String PROPERTY_CLIENTID = "clientId";
 
     private static final Logger LOG = Logger.getLogger(RestUserFederationProviderFactory.class);
 
@@ -51,6 +52,12 @@ public class RestUserFederationProviderFactory implements UserStorageProviderFac
                 .label("Remote User Information Url")
                 .defaultValue("https://")
                 .helpText("Remote repository url")
+                .add()
+                .property().name(PROPERTY_CLIENTID)
+                .type(ProviderConfigProperty.SCRIPT_TYPE)
+                .label("Remote Client identifier")
+                .defaultValue("")
+                .helpText("This value will be sent to the remote service along with the username")
                 .add()
                 .property().name(PROPERTY_ATTRIBS)
                 .type(ProviderConfigProperty.MULTIVALUED_STRING_TYPE)
@@ -96,8 +103,9 @@ public class RestUserFederationProviderFactory implements UserStorageProviderFac
     @Override
     public RestUserFederationProvider create(KeycloakSession session, ComponentModel model) {
         String url = model.getConfig().getFirst(PROPERTY_URL);
+        String clientId = model.getConfig().getFirst(PROPERTY_CLIENTID);
         List<String> attribList = model.getConfig().getList(PROPERTY_ATTRIBS);
-        UserRepository repository = new UserRepository(url, attribList);
+        UserRepository repository = new UserRepository(url, clientId, attribList);
         return new RestUserFederationProvider(session, model, repository);
     }
 

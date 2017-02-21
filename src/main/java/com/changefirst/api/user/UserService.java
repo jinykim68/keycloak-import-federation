@@ -9,6 +9,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 /**
+ * Stub Service class to be used with RestEasy to access user rest api
  * Created by istvano on 16/02/2017.
  */
 @Consumes(MediaType.APPLICATION_JSON)
@@ -16,14 +17,14 @@ import javax.ws.rs.core.Response;
 public interface UserService {
 
     @GET
-    @Path("/users/{username}")
-    UserDto getUserDetails(@PathParam("username") String username);
+    @Path("/clients/{client}/users/{username}")
+    UserDto getUserDetails(@PathParam("client") String client, @PathParam("username") String username);
 
     @HEAD
-    @Path("/users/{username}")
-    Response validateUserExists(@PathParam("username") String username);
+    @Path("/clients/{client}/users/{username}")
+    Response validateUserExists(@PathParam("client") String client, @PathParam("username") String username);
 
     @POST
-    @Path("/users/{username}")
-    Response validateLogin(@PathParam("username") String username, UserCredentialsDto credentialsDto);
+    @Path("/clients/{client}/users/{username}")
+    Response validateLogin(@PathParam("client") String client, @PathParam("username") String username, UserCredentialsDto credentialsDto);
 }
