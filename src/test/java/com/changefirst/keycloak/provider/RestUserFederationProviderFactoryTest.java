@@ -22,11 +22,13 @@ import org.keycloak.common.util.MultivaluedHashMap;
 import org.keycloak.component.ComponentModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.KeycloakSessionFactory;
+import org.keycloak.models.RealmModel;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.when;
 
 /**
  * Remote user federation provider factory tests.
@@ -40,6 +42,9 @@ public class RestUserFederationProviderFactoryTest {
 
     @Mock
     private KeycloakSession keycloakSession;
+
+    @Mock
+    private RealmModel realm;
 
     @Mock
     private Scope config;
@@ -72,6 +77,13 @@ public class RestUserFederationProviderFactoryTest {
     @Test
     public void testCreate() throws Exception {
         assertNull(factory.create(keycloakSession));
+    }
+
+    @Test
+    public void testValidateConfiguration() throws Exception {
+        factory.init(config);
+        factory.validateConfiguration(keycloakSession, realm, userFederationProviderModel);
+        verifyZeroInteractions(config);
     }
 
     @Test

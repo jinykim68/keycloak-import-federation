@@ -15,6 +15,7 @@
  */
 package com.changefirst.keycloak.provider;
 
+import com.changefirst.api.user.UserRepository;
 import org.junit.Before;
 import org.junit.Test;
 import org.keycloak.Config.Scope;
@@ -25,7 +26,8 @@ import org.keycloak.models.*;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
@@ -57,17 +59,24 @@ public class RestUserFederationProviderTest {
     @Mock
     private UserCredentialModel input;
 
+    @Mock
+    private UserRepository repository;
+
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
+
+
         factory = new RestUserFederationProviderFactory();
         MultivaluedHashMap<String, String> config = new MultivaluedHashMap<String, String>();
-        config.putSingle(RestUserFederationProviderFactory.PROPERTY_URL, "https://www.example.org");
+        config.putSingle(RestUserFederationProviderFactory.PROPERTY_URL, "http://localhost.com");
         when(userFederationProviderModel.getConfig())
                 .thenReturn(config);
 
-        when(input.getValue()).thenReturn("28:admin");
+        when(user.getUsername()).thenReturn("user1@changefirst.com");
+        when(input.getValue()).thenReturn("password");
         when(input.getType()).thenReturn(CredentialModel.PASSWORD);
+
     }
 
     @Test
@@ -77,7 +86,6 @@ public class RestUserFederationProviderTest {
         assertTrue(provider instanceof RestUserFederationProvider);
     }
 
-
     @Test
     public void testclose() throws Exception {
         RestUserFederationProvider  provider = factory.create(keycloakSession, userFederationProviderModel);
@@ -85,10 +93,5 @@ public class RestUserFederationProviderTest {
         verifyZeroInteractions(config);
     }
 
-    @Test
-    public void testIsValid() throws Exception {
-        RestUserFederationProvider  provider = factory.create(keycloakSession, userFederationProviderModel);
-        boolean validPasswrd = provider.isValid(realm, user, input);
-        assertTrue(validPasswrd);
-    }
+
 }

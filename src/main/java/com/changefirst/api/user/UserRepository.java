@@ -26,6 +26,7 @@ public class UserRepository {
                 .proxyBuilder(UserService.class)
                 .classloader(UserService.class.getClassLoader())
                 .build();
+
     }
 
     private String url;

@@ -18,16 +18,16 @@ package com.changefirst.keycloak.provider;
 import com.changefirst.api.user.UserRepository;
 import com.changefirst.model.UserDto;
 import org.jboss.logging.Logger;
+import org.keycloak.component.ComponentModel;
+import org.keycloak.credential.CredentialInput;
+import org.keycloak.credential.CredentialInputValidator;
 import org.keycloak.credential.CredentialModel;
 import org.keycloak.models.*;
 import org.keycloak.models.utils.UserModelDelegate;
 import org.keycloak.storage.StorageId;
+import org.keycloak.storage.UserStorageProvider;
 import org.keycloak.storage.user.ImportedUserValidation;
 import org.keycloak.storage.user.UserLookupProvider;
-import org.keycloak.storage.UserStorageProvider;
-import org.keycloak.credential.CredentialInputValidator;
-import org.keycloak.component.ComponentModel;
-import org.keycloak.credential.CredentialInput;
 
 import java.util.List;
 import java.util.Map;
@@ -56,7 +56,7 @@ public class RestUserFederationProvider implements UserLookupProvider, ImportedU
         UserModel local = session.userLocalStorage().getUserByUsername(username, realm);
         if (local == null) {
             //fetch user remotely
-            LOG.debugf("User %s does not exists locally, fetching in from remote.", username);
+            LOG.debugf("User %s does not exists locally, fetching it from remote.", username);
             UserDto remote = this.repository.findUserByUsername(username);
             if ( remote != null) {
 
