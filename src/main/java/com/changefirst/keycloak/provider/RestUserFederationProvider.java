@@ -32,6 +32,7 @@ import org.keycloak.storage.user.UserLookupProvider;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 
 /**
@@ -48,17 +49,19 @@ public class RestUserFederationProvider implements UserLookupProvider, ImportedU
     protected UserRepository repository;
     protected List<String> attributes;
     protected Boolean autoEnable;
+    protected Boolean autoConvertLocale;
 
     public RestUserFederationProvider(KeycloakSession session, ComponentModel model, UserRepository repository) {
-        this(session, model,repository, new ArrayList<String>(), false);
+        this(session, model,repository, new ArrayList<String>(), false, false);
     }
 
-    public RestUserFederationProvider(KeycloakSession session, ComponentModel model, UserRepository repository, List<String> attributes, Boolean autoEnable) {
+    public RestUserFederationProvider(KeycloakSession session, ComponentModel model, UserRepository repository, List<String> attributes, Boolean autoEnable, Boolean autoConvertLocale) {
         this.session = session;
         this.model = model;
         this.repository = repository;
         this.attributes = attributes;
         this.autoEnable = autoEnable;
+        this.autoConvertLocale = autoConvertLocale;
     }
 
     protected UserModel createAdapter(RealmModel realm, String username) {
@@ -96,8 +99,8 @@ public class RestUserFederationProvider implements UserLookupProvider, ImportedU
                         if ( this.attributes.isEmpty() || this.attributes.contains(attributeName)) {
                             attributeValues = attributes.get(attributeName);
                             if ( attributeValues != null && !attributeValues.isEmpty() ) {
-                                if ( attributeName.equalsIgnoreCase("locale") ) {
-                                    local.setSingleAttribute(UserModel.LOCALE, attributeValues.get(0));
+                                if ( attributeName.equalsIgnoreCase(UserModel.LOCALE) ) {
+                                    this.setUserLocale(realm, local, attributeValues.get(0));
                                 } else if ( attributeValues.size() == 1 ) {
                                     local.setSingleAttribute(attributeName, attributeValues.get(0));
                                 } else {
@@ -107,6 +110,9 @@ public class RestUserFederationProvider implements UserLookupProvider, ImportedU
                         }
                     }
                 }
+
+
+
 
                 //pass roles along
                 if (remote.getRoles() != null) {
@@ -134,6 +140,31 @@ public class RestUserFederationProvider implements UserLookupProvider, ImportedU
         }
     }
 
+    private UserModel setUserLocale(RealmModel realm,  UserModel local, String locale ) {
+
+        String matchingLocale = null;
+        if ( this.autoConvertLocale && realm.isInternationalizationEnabled()) {
+            Set<String> supportedLocales = realm.getSupportedLocales();
+            for (String supLocale : supportedLocales) {
+                if ( locale.equalsIgnoreCase(supLocale) ) {
+                    matchingLocale = supLocale;
+                    break;
+                }
+            }
+            if ( matchingLocale == null ) {
+                for (String supLocale : supportedLocales) {
+                    if ( locale.toLowerCase().contains(supLocale.toLowerCase()) ) {
+                        matchingLocale = supLocale;
+                        break;
+                    }
+                }
+            }
+        }
+
+        matchingLocale = matchingLocale==null?locale:matchingLocale;
+        local.setSingleAttribute(UserModel.LOCALE, matchingLocale);
+        return local;
+    }
 
     @Override
     public boolean supportsCredentialType(String credentialType) {

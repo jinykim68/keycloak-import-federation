@@ -41,6 +41,7 @@ public class RestUserFederationProviderFactory implements UserStorageProviderFac
     public static final String PROPERTY_ATTRIBS = "attributes";
     public static final String PROPERTY_CLIENTID = "clientId";
     public static final String AUTO_ENABLE_ACCOUNT = "auto-enable";
+    public static final String AUTO_CONVERT_LOCALE = "auto-locale";
 
     private static final Logger LOG = Logger.getLogger(RestUserFederationProviderFactory.class);
 
@@ -71,6 +72,12 @@ public class RestUserFederationProviderFactory implements UserStorageProviderFac
                 .label("Auto enable migrated user accounts")
                 .defaultValue(true)
                 .helpText("Using this property, one can mark all migrated accounts enabled")
+                .add()
+                .property().name(AUTO_CONVERT_LOCALE)
+                .type(ProviderConfigProperty.BOOLEAN_TYPE)
+                .label("Auto convert user's locale")
+                .defaultValue(true)
+                .helpText("Using this property, one can auto convert a locale. e.g. if user locale is en-GB and only en is enabled it will try to find and match that one")
                 .add()
                 .build();
     }
@@ -120,9 +127,10 @@ public class RestUserFederationProviderFactory implements UserStorageProviderFac
         String url = model.getConfig().getFirst(PROPERTY_URL);
         String clientId = model.getConfig().getFirst(PROPERTY_CLIENTID);
         Boolean autoEnable = Boolean.valueOf(model.getConfig().getFirst(AUTO_ENABLE_ACCOUNT));
+        Boolean autoConvertLocale = Boolean.valueOf(model.getConfig().getFirst(AUTO_CONVERT_LOCALE));
         List<String> attribList = model.getConfig().getList(PROPERTY_ATTRIBS);
         UserRepository repository = new UserRepository(url, clientId);
-        return new RestUserFederationProvider(session, model, repository, attribList, autoEnable);
+        return new RestUserFederationProvider(session, model, repository, attribList, autoEnable,autoConvertLocale);
     }
 
 }
