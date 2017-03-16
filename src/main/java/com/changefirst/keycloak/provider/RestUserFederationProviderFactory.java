@@ -40,6 +40,7 @@ public class RestUserFederationProviderFactory implements UserStorageProviderFac
     public static final String PROPERTY_URL = "url";
     public static final String PROPERTY_ATTRIBS = "attributes";
     public static final String PROPERTY_CLIENTID = "clientId";
+    public static final String AUTO_ENABLE_ACCOUNT = "auto-enable";
 
     private static final Logger LOG = Logger.getLogger(RestUserFederationProviderFactory.class);
 
@@ -64,6 +65,12 @@ public class RestUserFederationProviderFactory implements UserStorageProviderFac
                 .label("Names of attributes to process in addition to the default properties")
                 .defaultValue("")
                 .helpText("Using this property, one can pass in attributes onto the user")
+                .add()
+                .property().name(AUTO_ENABLE_ACCOUNT)
+                .type(ProviderConfigProperty.BOOLEAN_TYPE)
+                .label("Auto enable migrated user accounts")
+                .defaultValue(true)
+                .helpText("Using this property, one can mark all migrated accounts enabled")
                 .add()
                 .build();
     }
@@ -112,9 +119,10 @@ public class RestUserFederationProviderFactory implements UserStorageProviderFac
     public RestUserFederationProvider create(KeycloakSession session, ComponentModel model) {
         String url = model.getConfig().getFirst(PROPERTY_URL);
         String clientId = model.getConfig().getFirst(PROPERTY_CLIENTID);
+        Boolean autoEnable = Boolean.valueOf(model.getConfig().getFirst(AUTO_ENABLE_ACCOUNT));
         List<String> attribList = model.getConfig().getList(PROPERTY_ATTRIBS);
         UserRepository repository = new UserRepository(url, clientId);
-        return new RestUserFederationProvider(session, model, repository, attribList);
+        return new RestUserFederationProvider(session, model, repository, attribList, autoEnable);
     }
 
 }

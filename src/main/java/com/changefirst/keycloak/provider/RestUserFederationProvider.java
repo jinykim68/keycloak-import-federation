@@ -47,12 +47,13 @@ public class RestUserFederationProvider implements UserLookupProvider, ImportedU
     protected ComponentModel model;
     protected UserRepository repository;
     protected List<String> attributes;
+    protected Boolean autoEnable;
 
     public RestUserFederationProvider(KeycloakSession session, ComponentModel model, UserRepository repository) {
-        this(session, model,repository, new ArrayList<String>());
+        this(session, model,repository, new ArrayList<String>(), false);
     }
 
-    public RestUserFederationProvider(KeycloakSession session, ComponentModel model, UserRepository repository, List<String> attributes) {
+    public RestUserFederationProvider(KeycloakSession session, ComponentModel model, UserRepository repository, List<String> attributes, Boolean autoEnable) {
         this.session = session;
         this.model = model;
         this.repository = repository;
@@ -81,12 +82,25 @@ public class RestUserFederationProvider implements UserLookupProvider, ImportedU
                 local.setEmail(remote.getEmail());
                 local.setEmailVerified(remote.isEnabled());
 
+                //auto enable account
+                if ( this.autoEnable) {
+                    local.setEnabled(true);
+                }
+
                 //copy user attribs over
                 if (remote.getAttributes() != null) {
+                    List<String> attributeValues = null;
                     Map<String, List<String>> attributes = remote.getAttributes();
                     for (String attributeName : attributes.keySet()) {
                         if ( this.attributes.isEmpty() || this.attributes.contains(attributeName)) {
-                            local.setAttribute(attributeName, attributes.get(attributeName));
+                            attributeValues = attributes.get(attributeName);
+                            if ( attributeName.equalsIgnoreCase("locale") ) {
+                                local.setSingleAttribute(UserModel.LOCALE, attributeValues.get(0));
+                            } else if ( attributeValues.size() == 1 ) {
+                                local.setSingleAttribute(attributeName, attributeValues.get(0));
+                            } else {
+                                local.setAttribute(attributeName, attributeValues);
+                            }
                         }
                     }
                 }
