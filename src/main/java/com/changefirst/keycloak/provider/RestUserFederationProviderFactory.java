@@ -54,7 +54,7 @@ public class RestUserFederationProviderFactory implements UserStorageProviderFac
                 .helpText("Remote repository url")
                 .add()
                 .property().name(PROPERTY_CLIENTID)
-                .type(ProviderConfigProperty.SCRIPT_TYPE)
+                .type(ProviderConfigProperty.STRING_TYPE)
                 .label("Remote Client identifier")
                 .defaultValue("")
                 .helpText("This value will be sent to the remote service along with the username")
