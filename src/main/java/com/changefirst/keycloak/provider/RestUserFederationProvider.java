@@ -58,6 +58,7 @@ public class RestUserFederationProvider implements UserLookupProvider, ImportedU
         this.model = model;
         this.repository = repository;
         this.attributes = attributes;
+        this.autoEnable = autoEnable;
     }
 
     protected UserModel createAdapter(RealmModel realm, String username) {
@@ -83,7 +84,7 @@ public class RestUserFederationProvider implements UserLookupProvider, ImportedU
                 local.setEmailVerified(remote.isEnabled());
 
                 //auto enable account
-                if ( this.autoEnable) {
+                if ( this.autoEnable != null && this.autoEnable) {
                     local.setEnabled(true);
                 }
 
@@ -94,12 +95,14 @@ public class RestUserFederationProvider implements UserLookupProvider, ImportedU
                     for (String attributeName : attributes.keySet()) {
                         if ( this.attributes.isEmpty() || this.attributes.contains(attributeName)) {
                             attributeValues = attributes.get(attributeName);
-                            if ( attributeName.equalsIgnoreCase("locale") ) {
-                                local.setSingleAttribute(UserModel.LOCALE, attributeValues.get(0));
-                            } else if ( attributeValues.size() == 1 ) {
-                                local.setSingleAttribute(attributeName, attributeValues.get(0));
-                            } else {
-                                local.setAttribute(attributeName, attributeValues);
+                            if ( attributeValues != null && !attributeValues.isEmpty() ) {
+                                if ( attributeName.equalsIgnoreCase("locale") ) {
+                                    local.setSingleAttribute(UserModel.LOCALE, attributeValues.get(0));
+                                } else if ( attributeValues.size() == 1 ) {
+                                    local.setSingleAttribute(attributeName, attributeValues.get(0));
+                                } else {
+                                    local.setAttribute(attributeName, attributeValues);
+                                }
                             }
                         }
                     }
