@@ -3,10 +3,12 @@ package com.changefirst.api.user;
 import com.changefirst.model.UserCredentialsDto;
 import com.changefirst.model.UserDto;
 import org.apache.http.HttpStatus;
+import org.jboss.logging.Logger;
 import org.jboss.resteasy.client.jaxrs.ResteasyClient;
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
 
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,6 +18,8 @@ import java.util.List;
  * Created by istvano on 16/02/2017.
  */
 public class UserRepository {
+
+    private static final Logger LOG = Logger.getLogger(UserRepository.class);
 
     private static UserService buildClient(String uri) {
 
@@ -56,7 +60,15 @@ public class UserRepository {
      * @return
      */
     public UserDto findUserByUsername(String userName) {
-        UserDto remoteUser = remoteService.getUserDetails(this.client, userName);
+        UserDto remoteUser = null;
+
+        try {
+            remoteUser =remoteService.getUserDetails(this.client, userName);
+        } catch (WebApplicationException e) {
+            Response response = e.getResponse();
+            LOG.warn("Received a non OK answer from upstream migration service", e);
+        }
+
         return remoteUser;
     }
 }
