@@ -39,6 +39,7 @@ public class RestUserFederationProviderFactory implements UserStorageProviderFac
 
     public static final String PROPERTY_URL = "url";
     public static final String PROPERTY_ATTRIBS = "attributes";
+    public static final String ROLE_PREFIX = "role-prefix";
     public static final String PROPERTY_CLIENTID = "clientId";
     public static final String AUTO_ENABLE_ACCOUNT = "auto-enable";
     public static final String AUTO_CONVERT_LOCALE = "auto-locale";
@@ -66,6 +67,12 @@ public class RestUserFederationProviderFactory implements UserStorageProviderFac
                 .label("Names of attributes to process in addition to the default properties")
                 .defaultValue("")
                 .helpText("Using this property, one can pass in attributes onto the user")
+                .add()
+                .property().name(ROLE_PREFIX)
+                .type(ProviderConfigProperty.STRING_TYPE)
+                .label("Prefix that needs to be removed from roles received from remote API")
+                .defaultValue("")
+                .helpText("it is possible to remove a string prefix from roles")
                 .add()
                 .property().name(AUTO_ENABLE_ACCOUNT)
                 .type(ProviderConfigProperty.BOOLEAN_TYPE)
@@ -129,8 +136,9 @@ public class RestUserFederationProviderFactory implements UserStorageProviderFac
         Boolean autoEnable = Boolean.valueOf(model.getConfig().getFirst(AUTO_ENABLE_ACCOUNT));
         Boolean autoConvertLocale = Boolean.valueOf(model.getConfig().getFirst(AUTO_CONVERT_LOCALE));
         List<String> attribList = model.getConfig().getList(PROPERTY_ATTRIBS);
+        String rolePrefix = model.getConfig().getFirst(ROLE_PREFIX);
         UserRepository repository = new UserRepository(url, clientId);
-        return new RestUserFederationProvider(session, model, repository, attribList, autoEnable,autoConvertLocale);
+        return new RestUserFederationProvider(session, model, repository, attribList, rolePrefix, autoEnable,autoConvertLocale);
     }
 
 }

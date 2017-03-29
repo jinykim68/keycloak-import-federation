@@ -50,16 +50,18 @@ public class RestUserFederationProvider implements UserLookupProvider, ImportedU
     protected List<String> attributes;
     protected Boolean autoEnable;
     protected Boolean autoConvertLocale;
+    protected String rolePrefix;
 
     public RestUserFederationProvider(KeycloakSession session, ComponentModel model, UserRepository repository) {
-        this(session, model,repository, new ArrayList<String>(), false, false);
+        this(session, model,repository, new ArrayList<String>(), null, false, false);
     }
 
-    public RestUserFederationProvider(KeycloakSession session, ComponentModel model, UserRepository repository, List<String> attributes, Boolean autoEnable, Boolean autoConvertLocale) {
+    public RestUserFederationProvider(KeycloakSession session, ComponentModel model, UserRepository repository, List<String> attributes, String rolePrefix, Boolean autoEnable, Boolean autoConvertLocale) {
         this.session = session;
         this.model = model;
         this.repository = repository;
         this.attributes = attributes;
+        this.rolePrefix = rolePrefix;
         this.autoEnable = autoEnable;
         this.autoConvertLocale = autoConvertLocale;
     }
@@ -117,7 +119,7 @@ public class RestUserFederationProvider implements UserLookupProvider, ImportedU
                 //pass roles along
                 if (remote.getRoles() != null) {
                     for (String role : remote.getRoles()) {
-                        RoleModel roleModel = realm.getRole(role);
+                        RoleModel roleModel = realm.getRole(convertRemoteRoleName(role));
                         if (roleModel != null) {
                             local.grantRole(roleModel);
                             LOG.infof("Remote role %s granted to %s", role, username);
@@ -137,6 +139,14 @@ public class RestUserFederationProvider implements UserLookupProvider, ImportedU
             };
         } else {
             return null;
+        }
+    }
+
+    private String convertRemoteRoleName(String remoteRoleName) {
+        if ( this.rolePrefix !=null && this.rolePrefix.length() > 0) {
+            return remoteRoleName.replaceFirst("^"+rolePrefix, "");
+        } else {
+            return remoteRoleName;
         }
     }
 
