@@ -50,13 +50,15 @@ public class RestUserFederationProvider implements UserLookupProvider, ImportedU
     protected List<String> attributes;
     protected Boolean autoEnable;
     protected Boolean autoConvertLocale;
+    protected Boolean upperCaseRoleName;
+    protected Boolean lowerCaseRoleName;
     protected String rolePrefix;
 
     public RestUserFederationProvider(KeycloakSession session, ComponentModel model, UserRepository repository) {
-        this(session, model,repository, new ArrayList<String>(), null, false, false);
+        this(session, model,repository, new ArrayList<String>(), null, false, false, false, false);
     }
 
-    public RestUserFederationProvider(KeycloakSession session, ComponentModel model, UserRepository repository, List<String> attributes, String rolePrefix, Boolean autoEnable, Boolean autoConvertLocale) {
+    public RestUserFederationProvider(KeycloakSession session, ComponentModel model, UserRepository repository, List<String> attributes, String rolePrefix, Boolean autoEnable, Boolean autoConvertLocale, Boolean upperCaseRoleName, Boolean lowerCaseRoleName) {
         this.session = session;
         this.model = model;
         this.repository = repository;
@@ -64,6 +66,8 @@ public class RestUserFederationProvider implements UserLookupProvider, ImportedU
         this.rolePrefix = rolePrefix;
         this.autoEnable = autoEnable;
         this.autoConvertLocale = autoConvertLocale;
+        this.upperCaseRoleName = upperCaseRoleName;
+        this.lowerCaseRoleName = lowerCaseRoleName;
     }
 
     protected UserModel createAdapter(RealmModel realm, String username) {
@@ -143,11 +147,16 @@ public class RestUserFederationProvider implements UserLookupProvider, ImportedU
     }
 
     private String convertRemoteRoleName(String remoteRoleName) {
+        String roleName = remoteRoleName;
         if ( this.rolePrefix !=null && this.rolePrefix.length() > 0) {
-            return remoteRoleName.replaceFirst("^"+rolePrefix, "");
-        } else {
-            return remoteRoleName;
+            roleName =  remoteRoleName.replaceFirst("^"+rolePrefix, "");
         }
+        if ( this.upperCaseRoleName) {
+            roleName = roleName.toUpperCase();
+        } else if ( this.lowerCaseRoleName) {
+            roleName = roleName.toLowerCase();
+        }
+        return roleName;
     }
 
     private UserModel setUserLocale(RealmModel realm,  UserModel local, String locale ) {

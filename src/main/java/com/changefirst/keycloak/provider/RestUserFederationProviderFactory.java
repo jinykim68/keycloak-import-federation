@@ -43,6 +43,8 @@ public class RestUserFederationProviderFactory implements UserStorageProviderFac
     public static final String PROPERTY_CLIENTID = "clientId";
     public static final String AUTO_ENABLE_ACCOUNT = "auto-enable";
     public static final String AUTO_CONVERT_LOCALE = "auto-locale";
+    public static final String UPPERCASE_ROLE = "uppercase-role";
+    public static final String LOWERCASE_ROLE = "lowercase-role";
 
     private static final Logger LOG = Logger.getLogger(RestUserFederationProviderFactory.class);
 
@@ -85,6 +87,18 @@ public class RestUserFederationProviderFactory implements UserStorageProviderFac
                 .label("Auto convert user's locale")
                 .defaultValue(true)
                 .helpText("Using this property, one can auto convert a locale. e.g. if user locale is en-GB and only en is enabled it will try to find and match that one")
+                .add()
+                .property().name(UPPERCASE_ROLE)
+                .type(ProviderConfigProperty.BOOLEAN_TYPE)
+                .label("Uppercase role name")
+                .defaultValue(true)
+                .helpText("Convert remote roles to all uppercase")
+                .add()
+                .property().name(LOWERCASE_ROLE)
+                .type(ProviderConfigProperty.BOOLEAN_TYPE)
+                .label("Lowercase role name")
+                .defaultValue(true)
+                .helpText("Convert remote roles to all lowercase")
                 .add()
                 .build();
     }
@@ -135,10 +149,12 @@ public class RestUserFederationProviderFactory implements UserStorageProviderFac
         String clientId = model.getConfig().getFirst(PROPERTY_CLIENTID);
         Boolean autoEnable = Boolean.valueOf(model.getConfig().getFirst(AUTO_ENABLE_ACCOUNT));
         Boolean autoConvertLocale = Boolean.valueOf(model.getConfig().getFirst(AUTO_CONVERT_LOCALE));
+        Boolean upperCase = Boolean.valueOf(model.getConfig().getFirst(UPPERCASE_ROLE));
+        Boolean lowerCase = Boolean.valueOf(model.getConfig().getFirst(LOWERCASE_ROLE));
         List<String> attribList = model.getConfig().getList(PROPERTY_ATTRIBS);
         String rolePrefix = model.getConfig().getFirst(ROLE_PREFIX);
         UserRepository repository = new UserRepository(url, clientId);
-        return new RestUserFederationProvider(session, model, repository, attribList, rolePrefix, autoEnable,autoConvertLocale);
+        return new RestUserFederationProvider(session, model, repository, attribList, rolePrefix, autoEnable,autoConvertLocale, upperCase, lowerCase);
     }
 
 }
