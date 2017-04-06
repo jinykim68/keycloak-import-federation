@@ -29,14 +29,19 @@ The **UserDto** class defines the interface for the Rest Service class
 ## Installing the Federation Provider
 
 * build the project
+
 <code>
 ./gradlew clean build
 </code>
+
 * check if the jar was built
+
 <code>
 ls ./build/libs/
 </code>
+
 * deploy the jar file to a keycloak instance for example:
+
 <code>
 cp keycloak-import-federation-*.jar /opt/jboss/keycloak/providers/
 </code>
