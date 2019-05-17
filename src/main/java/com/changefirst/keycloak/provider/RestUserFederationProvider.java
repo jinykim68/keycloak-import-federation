@@ -78,8 +78,8 @@ public class RestUserFederationProvider implements UserLookupProvider, ImportedU
             UserDto remote = this.repository.findUserByUsername(username);
             if ( remote != null) {
 
-                if (!username.equals(remote.getEmail())) {
-                    throw new IllegalStateException(String.format("Local and remote users are not the same : [%s != %s]", username, remote.getEmail()));
+                if (!username.equals(remote.getUsername())) {
+                    throw new IllegalStateException(String.format("Local and remote users are not the same : [%s != %s]", username, remote.getUsername()));
                 }
 
                 //create user locally and set up relationship to this SPI

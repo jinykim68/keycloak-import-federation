@@ -10,6 +10,7 @@ import java.util.Set;
 public class UserDto {
     private String firstName;
     private String lastName;
+    private String username;
     private String email;
     private boolean enabled = false;
     private Set<String> roles;
@@ -29,6 +30,14 @@ public class UserDto {
 
     public void setLastName(String lastName) {
         this.lastName = lastName;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public String getEmail() {
@@ -73,6 +82,7 @@ public class UserDto {
         if (enabled != that.enabled) return false;
         if (firstName != null ? !firstName.equals(that.firstName) : that.firstName != null) return false;
         if (lastName != null ? !lastName.equals(that.lastName) : that.lastName != null) return false;
+        if (username != null ? !username.equals(that.username) : that.username != null) return false;
         if (email != null ? !email.equals(that.email) : that.email != null) return false;
         if (roles != null ? !roles.equals(that.roles) : that.roles != null) return false;
         return attributes != null ? attributes.equals(that.attributes) : that.attributes == null;
@@ -82,6 +92,7 @@ public class UserDto {
     public int hashCode() {
         int result = firstName != null ? firstName.hashCode() : 0;
         result = 31 * result + (lastName != null ? lastName.hashCode() : 0);
+        result = 31 * result + (username != null ? username.hashCode() : 0);
         result = 31 * result + (email != null ? email.hashCode() : 0);
         result = 31 * result + (enabled ? 1 : 0);
         result = 31 * result + (roles != null ? roles.hashCode() : 0);
@@ -94,6 +105,7 @@ public class UserDto {
         return "UserDto{" +
                 "firstName='" + firstName + '\'' +
                 ", lastName='" + lastName + '\'' +
+                ", username='" + username + '\'' +
                 ", email='" + email + '\'' +
                 ", enabled=" + enabled +
                 ", roles=" + roles +
