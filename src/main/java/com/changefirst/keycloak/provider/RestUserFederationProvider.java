@@ -20,6 +20,7 @@ import com.changefirst.model.UserDto;
 import org.jboss.logging.Logger;
 import org.keycloak.component.ComponentModel;
 import org.keycloak.credential.CredentialInput;
+import org.keycloak.credential.CredentialInputUpdater;
 import org.keycloak.credential.CredentialInputValidator;
 import org.keycloak.credential.CredentialModel;
 import org.keycloak.models.*;
@@ -30,8 +31,10 @@ import org.keycloak.storage.user.ImportedUserValidation;
 import org.keycloak.storage.user.UserLookupProvider;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 
@@ -40,7 +43,8 @@ import java.util.Set;
  *
  * @author Istvan Orban
  */
-public class RestUserFederationProvider implements UserLookupProvider, ImportedUserValidation, CredentialInputValidator, UserStorageProvider {
+public class RestUserFederationProvider implements UserLookupProvider, ImportedUserValidation, 
+        CredentialInputValidator, CredentialInputUpdater, UserStorageProvider {
 
     private static final Logger LOG = Logger.getLogger(RestUserFederationProvider.class);
 
@@ -86,6 +90,9 @@ public class RestUserFederationProvider implements UserLookupProvider, ImportedU
                 local = session.userLocalStorage().addUser(realm, username);
                 local.setFederationLink(model.getId());
 
+                // Add a required action: UPDATE_PASSWORD
+                local.addRequiredAction(UserModel.RequiredAction.UPDATE_PASSWORD);
+
                 //merge data from remote to local
                 local.setFirstName(remote.getFirstName());
                 local.setLastName(remote.getLastName());
@@ -117,8 +124,23 @@ public class RestUserFederationProvider implements UserLookupProvider, ImportedU
                     }
                 }
 
+                // Group allocation
+                if (remote.getGroups() != null) {
+                    for (String groupName : remote.getGroups()) {
+                        groupName = convertRemoteGroupName(groupName);
 
-
+                        List<GroupModel> groupModels = realm.searchForGroupByName(groupName, 0, 1);
+                        Optional<GroupModel> firstElm = groupModels.stream().findFirst();
+                        GroupModel groupModel = firstElm.isPresent() ? firstElm.get() : null;
+                        if (groupModel != null && groupName.equals(groupModel.getName())) {
+                            local.joinGroup(groupModel);
+                        } else {
+                            GroupModel newGroup = realm.createGroup(groupName);
+                            local.joinGroup(newGroup);
+                        }
+                        LOG.infof("Remote group %s granted to %s", groupName, username);
+                    }
+                }
 
                 //pass roles along
                 if (remote.getRoles() != null) {
@@ -144,6 +166,11 @@ public class RestUserFederationProvider implements UserLookupProvider, ImportedU
         } else {
             return null;
         }
+    }
+
+    private String convertRemoteGroupName(String remoteGroupName) {
+        // Lowercase the group name
+        return remoteGroupName.toLowerCase();
     }
 
     private String convertRemoteRoleName(String remoteRoleName) {
@@ -202,6 +229,30 @@ public class RestUserFederationProvider implements UserLookupProvider, ImportedU
         }
         UserCredentialModel cred = (UserCredentialModel) input;
         return repository.validateCredentials(user.getUsername(), cred.getValue());
+    }
+
+    @Override
+    public boolean updateCredential(RealmModel realm, UserModel user, CredentialInput input) {
+        LOG.infof("Updating credential: realm=%s, username=%s", realm.getId(), user.getUsername());
+        if (!supportsCredentialType(input.getType()) || !(input instanceof UserCredentialModel))
+            return false;
+
+        // Remove the federation link
+        user.setFederationLink(null);
+        // Update user's password
+        session.userCredentialManager().updateCredential(realm, user, input);
+        return true;
+    }
+
+    @Override
+    public void disableCredentialType(RealmModel realm, UserModel user, String credentialType) {
+        // n/a
+    }
+
+    @Override
+    public Set<String> getDisableableCredentialTypes(RealmModel realm, UserModel user) {
+        // n/a
+        return Collections.emptySet();
     }
 
     @Override

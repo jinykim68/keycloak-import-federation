@@ -8,6 +8,7 @@
 .history
 .classpath
 .project
+.vscode
 
 *.bak
 test-result

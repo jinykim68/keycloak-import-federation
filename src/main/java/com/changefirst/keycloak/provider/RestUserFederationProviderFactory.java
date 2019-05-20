@@ -91,7 +91,7 @@ public class RestUserFederationProviderFactory implements UserStorageProviderFac
                 .property().name(UPPERCASE_ROLE)
                 .type(ProviderConfigProperty.BOOLEAN_TYPE)
                 .label("Uppercase role name")
-                .defaultValue(true)
+                .defaultValue(false)
                 .helpText("Convert remote roles to all uppercase")
                 .add()
                 .property().name(LOWERCASE_ROLE)

@@ -14,6 +14,7 @@ public class UserDto {
     private String email;
     private boolean enabled = false;
     private Set<String> roles;
+    private Set<String> groups;
     private Map<String, List<String>> attributes;
 
     public String getFirstName() {
@@ -64,6 +65,14 @@ public class UserDto {
         this.roles = roles;
     }
 
+    public Set<String> getGroups() {
+        return groups;
+    }
+
+    public void setGroups(Set<String> groups) {
+        this.groups = groups;
+    }
+
     public Map<String, List<String>> getAttributes() {
         return attributes;
     }
@@ -85,6 +94,7 @@ public class UserDto {
         if (username != null ? !username.equals(that.username) : that.username != null) return false;
         if (email != null ? !email.equals(that.email) : that.email != null) return false;
         if (roles != null ? !roles.equals(that.roles) : that.roles != null) return false;
+        if (groups != null ? !groups.equals(that.groups) : that.groups != null) return false;
         return attributes != null ? attributes.equals(that.attributes) : that.attributes == null;
     }
 
@@ -96,6 +106,7 @@ public class UserDto {
         result = 31 * result + (email != null ? email.hashCode() : 0);
         result = 31 * result + (enabled ? 1 : 0);
         result = 31 * result + (roles != null ? roles.hashCode() : 0);
+        result = 31 * result + (groups != null ? groups.hashCode() : 0);
         result = 31 * result + (attributes != null ? attributes.hashCode() : 0);
         return result;
     }
@@ -109,6 +120,7 @@ public class UserDto {
                 ", email='" + email + '\'' +
                 ", enabled=" + enabled +
                 ", roles=" + roles +
+                ", groups=" + groups +
                 ", attributes=" + attributes +
                 '}';
     }
